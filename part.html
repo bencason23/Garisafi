@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="View spare part details, compatibility, price, condition, and seller contact information on GariSafi.com.">
+  <title>Spare part details — GariSafi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="GariSafi.com home">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <span>GariSafi<span class="brand-period">.com</span></span>
+    </a>
+    <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-menu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-menu" id="site-menu" aria-label="Main menu" hidden>
+      <p class="menu-message" id="menu-message" role="status" hidden></p>
+      <a href="index.html#inventory">Buy a car</a>
+      <a href="sell.html">Sell your car</a>
+      <a href="parts.html" aria-current="page">Spare parts</a>
+      <a href="sell-part.html">Sell a part</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <a class="menu-messages" href="inbox.html" hidden>Messages</a>
+      <a class="menu-account" href="login.html">Sign in</a>
+      <a class="menu-register" href="register.html">Create account</a>
+      <a class="button button-dark menu-browse" href="parts.html#parts-listings">Browse parts <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main class="car-detail-page part-detail-page">
+    <a class="back-to-listings" href="parts.html#parts-listings">← Back to spare parts</a>
+    <p class="form-message detail-message" id="part-detail-message" role="status" aria-live="polite"></p>
+    <div class="part-detail-layout" id="part-detail" hidden>
+      <div class="part-detail-image-wrap">
+        <img class="part-detail-photo" id="part-detail-photo" alt="">
+        <div class="part-detail-thumbnails" id="part-detail-thumbnails" aria-label="Choose a spare part photo"></div>
+      </div>
+      <div class="part-detail-copy">
+        <p class="eyebrow"><span class="eyebrow-dot"></span> GARISAFI PARTS MARKETPLACE</p>
+        <div class="part-details-meta">
+          <span class="part-category" id="part-detail-category"></span>
+          <span class="part-condition" id="part-detail-condition"></span>
+        </div>
+        <h1 id="part-detail-title"></h1>
+        <p class="part-details-price" id="part-detail-price"></p>
+        <section class="seller-card part-contact-card" id="contact">
+          <p class="eyebrow">CONTACT THE SELLER</p>
+          <h2 id="part-detail-seller">GariSafi seller</h2>
+          <button class="button button-outline part-detail-contact" id="part-detail-contact" type="button">Show seller phone number</button>
+          <a class="part-detail-phone" id="part-detail-phone" hidden></a>
+          <a class="button button-outline part-detail-email" id="part-detail-email" hidden>Email seller</a>
+          <p class="seller-hint" id="part-detail-seller-hint">Reveal the seller’s phone number or start a GariSafi chat.</p>
+          <button class="button button-dark part-detail-chat-button" id="part-chat-button" type="button" hidden>Chat with seller on GariSafi</button>
+        </section>
+        <section class="part-detail-section">
+          <h2>Vehicle compatibility</h2>
+          <p id="part-detail-compatibility"></p>
+        </section>
+        <section class="part-detail-section">
+          <h2>About this part</h2>
+          <p id="part-detail-description"></p>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <a class="brand footer-brand" href="index.html" aria-label="GariSafi.com home"><span class="brand-mark" aria-hidden="true">G</span><span>GariSafi<span class="brand-period">.com</span></span></a>
+    <p>Good cars. Good parts. Good people.</p>
+    <span>© 2026 GariSafi.com</span>
+  </footer>
+  <script src="toast.js"></script>
+  <script src="site-menu.js"></script>
+  <script src="part-detail.js"></script>
+</body>
+</html>

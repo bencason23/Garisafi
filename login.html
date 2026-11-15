@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sign in to your GariSafi.com account.">
+  <title>Sign in — GariSafi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-page">
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="GariSafi.com home">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <span>GariSafi<span class="brand-period">.com</span></span>
+    </a>
+    <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-menu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-menu" id="site-menu" aria-label="Main menu" hidden>
+      <p class="menu-message" id="menu-message" role="status" hidden></p>
+      <a href="index.html#inventory">Buy a car</a>
+      <a href="sell.html">Sell your car</a>
+      <a href="parts.html">Buy &amp; sell spare parts</a>
+      <a href="sell-part.html">Sell a part</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <a class="menu-messages" href="inbox.html" hidden>Messages</a>
+      <a class="menu-account" href="login.html" aria-current="page">Sign in</a>
+      <a class="menu-register" href="register.html">Create account</a>
+      <a class="button button-dark menu-browse" href="index.html#inventory">Browse cars <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main class="auth-layout">
+    <section class="auth-welcome">
+      <p class="eyebrow"><span class="eyebrow-dot"></span> YOUR NEXT DRIVE STARTS HERE</p>
+      <h1>Good to have<br><span>you back.</span></h1>
+      <p>Sign in to pick up where you left off, or list your car for the GariSafi community.</p>
+      <div class="auth-trust"><span aria-hidden="true">✳</span> A better way to buy and sell cars in Kenya.</div>
+    </section>
+    <section class="auth-card" aria-labelledby="auth-title">
+      <p class="eyebrow">WELCOME BACK</p>
+      <h2 id="auth-title">Sign in to your account</h2>
+      <p class="auth-card-copy">Enter your details below to continue.</p>
+      <form class="auth-form" id="login-form">
+        <label class="form-field">Email address<input name="email" type="email" autocomplete="email" placeholder="you@example.com" required></label>
+        <label class="form-field">Password<input name="password" type="password" autocomplete="current-password" placeholder="Your password" maxlength="72" required></label>
+        <p class="form-message" id="login-message" role="status" aria-live="polite"></p>
+        <button class="button button-dark auth-submit" type="submit">Sign in <span aria-hidden="true">→</span></button>
+      </form>
+      <p class="auth-switch">New to GariSafi? <a href="register.html" data-auth-link="register">Create an account</a></p>
+      <p class="auth-disclaimer">Your account is securely stored with GariSafi.</p>
+    </section>
+  </main>
+  <script src="toast.js"></script>
+  <script src="site-menu.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

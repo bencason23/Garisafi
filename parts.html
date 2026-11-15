@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Buy and sell car spare parts on the GariSafi.com marketplace.">
+  <title>Car spare parts — GariSafi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="GariSafi.com home">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <span>GariSafi<span class="brand-period">.com</span></span>
+    </a>
+    <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-menu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-menu" id="site-menu" aria-label="Main menu" hidden>
+      <p class="menu-message" id="menu-message" role="status" hidden></p>
+      <a href="index.html#inventory">Buy a car</a>
+      <a href="sell.html">Sell your car</a>
+      <a href="parts.html" aria-current="page">Spare parts</a>
+      <a href="sell-part.html">Sell a part</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <a class="menu-messages" href="inbox.html" hidden>Messages</a>
+      <a class="menu-account" href="login.html">Sign in</a>
+      <a class="menu-register" href="register.html">Create account</a>
+      <a class="button button-dark menu-browse" href="#parts-listings">Browse parts <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main>
+    <section class="parts-hero">
+      <div>
+        <p class="eyebrow"><span class="eyebrow-dot"></span> GARISAFI PARTS MARKETPLACE</p>
+        <h1>Find the right part.<br><span>Keep your drive going.</span></h1>
+        <p>Browse parts listed by the community, or post one for sale. Message the seller directly to arrange your purchase.</p>
+        <a class="button button-lime" href="#parts-listings">Explore spare parts <span aria-hidden="true">→</span></a>
+      </div>
+      <a class="parts-post-cta" href="sell-part.html"><span aria-hidden="true">＋</span><span><strong>Have a part to sell?</strong><small>Post a listing with a photo and price</small></span><span aria-hidden="true">↗</span></a>
+    </section>
+
+    <section class="parts-market section-wrap" id="parts-listings" aria-labelledby="parts-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">PARTS FROM THE COMMUNITY</p>
+          <h2 id="parts-title">Shop spare <span>parts.</span></h2>
+        </div>
+        <a class="text-link view-all" href="sell-part.html">List a spare part <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="parts-filter">
+        <label class="search-field">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="part-search" type="search" aria-label="Search spare parts" placeholder="Search part, vehicle, or seller">
+        </label>
+        <label class="select-field">
+          <span class="sr-only">Part category</span>
+          <select id="part-category" aria-label="Part category">
+            <option value="">All categories</option>
+            <option>Engine</option><option>Brakes</option><option>Electrical</option><option>Body &amp; Exterior</option>
+            <option>Interior</option><option>Wheels &amp; Tyres</option><option>Suspension</option><option>Other</option>
+          </select>
+        </label>
+        <button class="button button-dark" id="part-search-button" type="button">Find a part <span aria-hidden="true">→</span></button>
+      </div>
+      <div class="inventory-meta">
+        <p><strong>Available parts</strong> <span>·</span> <span id="part-count">Loading parts…</span></p>
+        <span class="currency-badge">KES · KSh</span>
+      </div>
+      <p class="form-message" id="parts-message" role="status" aria-live="polite"></p>
+      <div class="parts-grid" id="parts-grid" aria-live="polite"></div>
+    </section>
+
+  </main>
+  <footer class="site-footer">
+    <a class="brand footer-brand" href="index.html" aria-label="GariSafi.com home"><span class="brand-mark" aria-hidden="true">G</span><span>GariSafi<span class="brand-period">.com</span></span></a>
+    <p>Good cars. Good parts. Good people.</p>
+    <span>© 2026 GariSafi.com</span>
+  </footer>
+  <script src="toast.js"></script>
+  <script src="site-menu.js"></script>
+  <script src="search-analytics.js"></script>
+  <script src="parts.js"></script>
+</body>
+</html>

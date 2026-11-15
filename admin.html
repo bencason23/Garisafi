@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage the GariSafi marketplace.">
+  <title>Admin dashboard — GariSafi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+  <aside class="admin-sidebar">
+    <a class="admin-brand" href="index.html" aria-label="GariSafi home">
+      <span class="admin-brand-mark">G</span>
+      <span>GariSafi<span>.com</span></span>
+    </a>
+    <p class="sidebar-label">WORKSPACE</p>
+    <nav class="admin-nav" aria-label="Admin navigation">
+      <button class="admin-nav-link is-active" type="button" data-view="overview"><span aria-hidden="true">▦</span> Overview</button>
+      <button class="admin-nav-link" type="button" data-view="listings"><span aria-hidden="true">◇</span> Listings</button>
+      <button class="admin-nav-link" type="button" data-view="members"><span aria-hidden="true">♧</span> Members</button>
+      <button class="admin-nav-link" type="button" data-view="conversations"><span aria-hidden="true">✉</span> Conversations</button>
+      <a class="admin-nav-link" href="index.html"><span aria-hidden="true">↗</span> View marketplace</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <span class="sidebar-status-dot"></span>
+      <span>Marketplace is live</span>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <header class="admin-topbar">
+      <div>
+        <p class="admin-breadcrumb">GARISAFI <span>/</span> ADMIN</p>
+        <h1 id="page-title">Overview</h1>
+      </div>
+      <div class="admin-account">
+        <div class="admin-avatar" id="admin-avatar">G</div>
+        <div class="admin-account-copy"><strong id="admin-name">Admin</strong><span id="admin-email">Loading account…</span></div>
+        <button class="admin-logout" id="logout-button" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <div class="admin-alert" id="admin-alert" role="status" aria-live="polite" hidden></div>
+      <section class="admin-view" data-panel="overview">
+        <div class="welcome-banner">
+          <div>
+            <p class="admin-eyebrow">YOUR MARKETPLACE, AT A GLANCE</p>
+            <h2>Good to see you, <span id="welcome-name">Admin</span>.</h2>
+            <p>Here’s what’s happening across GariSafi today.</p>
+          </div>
+          <span class="banner-mark" aria-hidden="true">✳</span>
+        </div>
+        <div class="stat-grid" aria-live="polite">
+          <article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-green">♧</span><span class="stat-period">ALL TIME</span></div><p>Total members</p><strong id="stat-users">—</strong><span class="stat-note">Registered accounts</span></article>
+          <article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-lime">◇</span><span class="stat-period">LIVE</span></div><p>Car listings</p><strong id="stat-cars">—</strong><span class="stat-note">Vehicles for sale</span></article>
+          <article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-orange">⚙</span><span class="stat-period">LIVE</span></div><p>Spare parts</p><strong id="stat-parts">—</strong><span class="stat-note">Parts listed by sellers</span></article>
+          <article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-blue">✉</span><span class="stat-period">ALL TIME</span></div><p>Conversations</p><strong id="stat-conversations">—</strong><span class="stat-note">Buyer and seller chats</span></article>
+          <article class="stat-card"><div class="stat-card-top"><span class="stat-icon stat-icon-green">☰</span><span class="stat-period">ALL TIME</span></div><p>Messages</p><strong id="stat-messages">—</strong><span class="stat-note">Messages exchanged</span></article>
+        </div>
+        <section class="admin-panel analytics-panel" aria-labelledby="analytics-title">
+          <div class="analytics-heading">
+            <div><p class="admin-eyebrow">STOCKING INSIGHTS</p><h2 id="analytics-title">What shoppers are searching for</h2><p>Use popular searches to spot where more inventory could help.</p></div>
+            <label class="period-select">PERIOD
+              <select id="analytics-period" aria-label="Search analytics period">
+                <option value="7">Last 7 days</option>
+                <option value="30" selected>Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="365">Last year</option>
+                <option value="0">All time</option>
+              </select>
+            </label>
+          </div>
+          <div class="analytics-total"><strong id="analytics-total">—</strong><span>recorded searches in this period</span></div>
+          <div class="analytics-grid">
+            <section class="analytics-column"><div class="analytics-column-heading"><span class="analytics-icon analytics-icon-car" aria-hidden="true">◇</span><div><h3>Cars</h3><p>Popular makes, models, and filters</p></div></div><div class="search-rankings" id="car-search-rankings"><p class="table-message">Loading search insights…</p></div></section>
+            <section class="analytics-column"><div class="analytics-column-heading"><span class="analytics-icon analytics-icon-part" aria-hidden="true">⚙</span><div><h3>Spare parts</h3><p>Popular part searches and categories</p></div></div><div class="search-rankings" id="part-search-rankings"><p class="table-message">Loading search insights…</p></div></section>
+          </div>
+          <p class="analytics-note">Search activity is collected from new searches after this feature is enabled. Earlier searches are not available.</p>
+        </section>
+        <div class="overview-grid">
+          <section class="admin-panel">
+            <div class="panel-heading"><div><p class="admin-eyebrow">LATEST ACTIVITY</p><h2>Recently listed cars</h2></div><button class="panel-link" type="button" data-open-view="listings">All listings <span aria-hidden="true">→</span></button></div>
+            <div class="recent-list" id="recent-cars"><p class="table-message">Loading recent listings…</p></div>
+          </section>
+          <section class="admin-panel activity-panel">
+            <p class="admin-eyebrow">MARKETPLACE SNAPSHOT</p>
+            <h2>Everything in one place.</h2>
+            <p class="activity-copy">Keep an eye on new members and the latest listings. You can review or remove listings from the Listings section.</p>
+            <button class="button button-dark" type="button" data-open-view="members">View members <span aria-hidden="true">→</span></button>
+            <div class="snapshot-line"><span>Car listings</span><strong id="snapshot-cars">—</strong></div>
+            <div class="snapshot-line"><span>Spare-part listings</span><strong id="snapshot-parts">—</strong></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="admin-view" data-panel="listings" hidden>
+        <div class="view-intro"><div><p class="admin-eyebrow">MARKETPLACE INVENTORY</p><h2>Listings</h2><p>Review and manage cars and spare parts posted by members.</p></div></div>
+        <div class="admin-panel table-panel">
+          <div class="table-toolbar">
+            <div class="view-switch" role="group" aria-label="Listing type">
+              <button class="view-switch-button is-active" type="button" data-listing-type="cars">Cars <span id="car-tab-count">0</span></button>
+              <button class="view-switch-button" type="button" data-listing-type="parts">Spare parts <span id="part-tab-count">0</span></button>
+            </div>
+            <label class="admin-search"><span aria-hidden="true">⌕</span><input id="listing-search" type="search" placeholder="Search listings" aria-label="Search listings"></label>
+          </div>
+          <div class="table-scroll">
+            <table class="admin-table">
+              <thead id="listing-head"></thead>
+              <tbody id="listing-rows"><tr><td class="table-message" colspan="5">Loading listings…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="table-pagination" id="listing-pagination"></div>
+          <p class="table-footnote">All listings are available across pages. Removing a listing cannot be undone.</p>
+        </div>
+      </section>
+
+      <section class="admin-view" data-panel="members" hidden>
+        <div class="view-intro"><div><p class="admin-eyebrow">COMMUNITY</p><h2>Members</h2><p>The latest registered accounts in the GariSafi community.</p></div></div>
+        <div class="admin-panel table-panel">
+          <div class="table-toolbar"><div><strong class="toolbar-title">Members</strong><span class="toolbar-subtitle">All registered accounts</span></div><label class="admin-search"><span aria-hidden="true">⌕</span><input id="member-search" type="search" placeholder="Search all members" aria-label="Search members"></label></div>
+          <div class="table-scroll">
+            <table class="admin-table">
+              <thead><tr><th>MEMBER</th><th>EMAIL ADDRESS</th><th>JOINED</th><th>STATUS</th><th>MANAGE</th></tr></thead>
+              <tbody id="member-rows"><tr><td class="table-message" colspan="5">Loading members…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="table-pagination" id="member-pagination"></div>
+        </div>
+      </section>
+
+      <section class="admin-view" data-panel="conversations" hidden>
+        <div class="view-intro"><div><p class="admin-eyebrow">BUYER AND SELLER MESSAGES</p><h2>Conversations</h2><p>Review every conversation and its messages.</p></div></div>
+        <div class="admin-panel table-panel">
+          <div class="table-toolbar"><div><strong class="toolbar-title">All conversations</strong><span class="toolbar-subtitle">Search participants, listings, and messages</span></div><label class="admin-search"><span aria-hidden="true">⌕</span><input id="conversation-search" type="search" placeholder="Search conversations" aria-label="Search conversations"></label></div>
+          <div class="table-scroll">
+            <table class="admin-table">
+              <thead><tr><th>LISTING</th><th>BUYER</th><th>SELLER</th><th>MESSAGES</th><th>LAST ACTIVE</th><th></th></tr></thead>
+              <tbody id="conversation-rows"><tr><td class="table-message" colspan="6">Loading conversations…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="table-pagination" id="conversation-pagination"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <dialog class="message-dialog" id="message-dialog" aria-labelledby="message-dialog-title">
+    <div class="message-dialog-heading">
+      <div><p class="admin-eyebrow">CONVERSATION HISTORY</p><h2 id="message-dialog-title">Messages</h2><p id="message-dialog-meta"></p></div>
+      <button class="dialog-close" id="message-dialog-close" type="button" aria-label="Close messages">×</button>
+    </div>
+    <div class="message-list" id="message-list" aria-live="polite"></div>
+    <div class="table-pagination" id="message-pagination"></div>
+  </dialog>
+  <script src="toast.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

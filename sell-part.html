@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Create a spare-part listing on the GariSafi.com marketplace.">
+  <title>Sell a spare part — GariSafi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="GariSafi.com home">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <span>GariSafi<span class="brand-period">.com</span></span>
+    </a>
+    <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-menu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-menu" id="site-menu" aria-label="Main menu" hidden>
+      <p class="menu-message" id="menu-message" role="status" hidden></p>
+      <a href="index.html#inventory">Buy a car</a>
+      <a href="sell.html">Sell your car</a>
+      <a href="parts.html">Spare parts</a>
+      <a href="sell-part.html" aria-current="page">Sell a part</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <a class="menu-messages" href="inbox.html" hidden>Messages</a>
+      <a class="menu-account" href="login.html">Sign in</a>
+      <a class="menu-register" href="register.html">Create account</a>
+      <a class="button button-dark menu-browse" href="parts.html#parts-listings">Browse parts <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main class="sell-page">
+    <section class="parts-sell-section" aria-labelledby="post-part-title">
+      <div class="parts-sell-inner">
+        <div class="sell-intro">
+          <p class="eyebrow"><span class="eyebrow-dot"></span> GIVE YOUR SPARE PART A NEW HOME</p>
+          <h1 id="post-part-title">List a part for sale.</h1>
+          <p>Add clear photos and details to help buyers find the right part. Your listing will be saved in the GariSafi marketplace.</p>
+          <div class="sell-note"><span aria-hidden="true">✳</span> Buyers contact you directly to arrange the purchase.</div>
+          <p><a class="text-link" href="parts.html">← Back to spare parts</a></p>
+        </div>
+        <form class="sell-form" id="part-form">
+          <div class="form-heading">
+            <div><p class="car-make">CREATE A LISTING</p><h3>Tell us about the part</h3></div>
+            <span class="currency-badge">KES · KSh</span>
+          </div>
+          <div class="form-grid">
+            <label class="form-field">Part name<input name="title" placeholder="e.g. Front brake pads" required maxlength="80"></label>
+            <label class="form-field">Category
+              <select name="category" required>
+                <option value="">Choose category</option>
+                <option>Engine</option><option>Brakes</option><option>Electrical</option><option>Body &amp; Exterior</option>
+                <option>Interior</option><option>Wheels &amp; Tyres</option><option>Suspension</option><option>Other</option>
+              </select>
+            </label>
+            <label class="form-field">Condition
+              <select name="condition" required><option value="">Choose condition</option><option>New</option><option>Used</option></select>
+            </label>
+            <label class="form-field">Fits which vehicle?<input name="compatibleVehicles" placeholder="e.g. Toyota Axio 2015–2019" maxlength="100"></label>
+            <label class="form-field">Asking price (KSh)<input name="price" type="number" min="1" step="1" placeholder="5,000" required></label>
+            <label class="form-field">Description<textarea name="description" placeholder="Share useful details about this part" required maxlength="500" rows="3"></textarea></label>
+            <label class="form-field form-field-wide">Your phone number (international format)<input name="sellerPhone" type="tel" autocomplete="tel" placeholder="+254 712 345678" pattern="\+[1-9][0-9\s()-]{7,19}" required><small>Buyers can reveal this number from your part listing.</small></label>
+          </div>
+          <label class="upload-field" for="part-photos">
+            <span class="upload-symbol" aria-hidden="true">↑</span>
+            <span><strong>Choose spare part photos</strong><small>JPG, PNG or WebP · up to 10 photos, 5 MB each, 12 MB total</small></span>
+            <input id="part-photos" name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple required>
+          </label>
+          <div class="photo-preview-grid" id="part-preview" aria-live="polite"></div>
+          <p class="form-message" id="part-form-message" role="status" aria-live="polite"></p>
+          <button class="button button-dark submit-listing" type="submit">Post your part <span aria-hidden="true">→</span></button>
+          <a class="form-disclaimer listing-success-link" id="part-success-link" href="parts.html#parts-listings" hidden>View spare parts for sale →</a>
+          <p class="form-disclaimer">Your listing and photos are stored in the GariSafi database.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <a class="brand footer-brand" href="index.html" aria-label="GariSafi.com home"><span class="brand-mark" aria-hidden="true">G</span><span>GariSafi<span class="brand-period">.com</span></span></a>
+    <p>Good cars. Good parts. Good people.</p>
+    <span>© 2026 GariSafi.com</span>
+  </footer>
+  <script src="toast.js"></script>
+  <script src="site-menu.js"></script>
+  <script src="part-sell.js"></script>
+</body>
+</html>

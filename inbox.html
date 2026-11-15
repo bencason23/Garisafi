@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Read and reply to your GariSafi car marketplace messages.">
+  <title>Your messages — GariSafi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="GariSafi.com home">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <span>GariSafi<span class="brand-period">.com</span></span>
+    </a>
+    <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-menu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-menu" id="site-menu" aria-label="Main menu" hidden>
+      <p class="menu-message" id="menu-message" role="status" hidden></p>
+      <a href="index.html#inventory">Buy a car</a>
+      <a href="sell.html">Sell your car</a>
+      <a href="parts.html">Buy &amp; sell spare parts</a>
+      <a href="sell-part.html">Sell a part</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <a class="menu-messages" href="inbox.html" aria-current="page">Messages</a>
+      <a class="menu-account" href="login.html">Sign in</a>
+      <a class="menu-register" href="register.html">Create account</a>
+      <a class="button button-dark menu-browse" href="index.html#inventory">Browse cars <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main class="inbox-page">
+    <div class="inbox-heading">
+      <p class="eyebrow"><span class="eyebrow-dot"></span> GARISAFI MESSAGES</p>
+      <h1>Your conversations.</h1>
+      <p>Talk directly with buyers and sellers about their car listings.</p>
+    </div>
+    <p class="form-message" id="inbox-error" role="status" aria-live="polite"></p>
+    <div class="inbox-layout">
+      <aside class="conversation-list" id="conversation-list" aria-label="Your conversations"></aside>
+      <section class="inbox-thread" aria-label="Conversation">
+        <div class="inbox-thread-heading">
+          <div><p class="eyebrow">ABOUT THIS LISTING</p><h2 id="thread-title">Choose a conversation</h2></div>
+          <a id="thread-car-link" href="index.html#inventory" hidden>View listing ↗</a>
+        </div>
+        <div class="inbox-messages" id="inbox-messages" aria-live="polite"></div>
+        <form class="site-chat-form" id="inbox-reply-form">
+          <label class="sr-only" for="inbox-reply">Your reply</label>
+          <textarea id="inbox-reply" name="body" maxlength="2000" rows="2" placeholder="Write a reply…" required disabled></textarea>
+          <button class="button button-dark" type="submit" disabled>Send reply <span aria-hidden="true">→</span></button>
+        </form>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <a class="brand footer-brand" href="index.html" aria-label="GariSafi.com home"><span class="brand-mark" aria-hidden="true">G</span><span>GariSafi<span class="brand-period">.com</span></span></a>
+    <p>Good cars. Good people. Good to go.</p>
+    <span>© 2026 GariSafi.com</span>
+  </footer>
+  <script src="toast.js"></script>
+  <script src="site-menu.js"></script>
+  <script src="inbox.js"></script>
+</body>
+</html>
