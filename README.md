@@ -40,3 +40,4 @@ The Express API runs as a Vercel Node.js Function through `api/[...path].js`; Mo
 5. Test the deployed health endpoint at `/api/health`; it should return `"status":"ok"` and `"blobUploadsEnabled":true`. Then test registration, login, listings, image uploads, messaging, and admin access.
 
 The Vercel Blob browser upload flow requires a signed upload token, and the API only issues one to a signed-in user for their own listing photos. Old MongoDB-stored photos continue to work. For local development, keep using `npm.cmd start` and configure `.env`; Blob uploads are optional and multipart uploads continue to work locally.
+"# Garisafi" 
