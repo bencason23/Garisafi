@@ -206,16 +206,34 @@ if (sellForm) {
       return;
     }
 
+    let uploadedPhotos = null;
     try {
+      uploadedPhotos = window.uploadMarketplacePhotos
+        ? await window.uploadMarketplacePhotos(photos, "cars")
+        : null;
       const response = await fetch("/api/cars", {
         method: "POST",
-        body: new FormData(sellForm)
+        headers: uploadedPhotos ? { "Content-Type": "application/json" } : {},
+        body: uploadedPhotos
+          ? JSON.stringify({
+            ...Object.fromEntries([...new FormData(sellForm).entries()].filter(([name]) => name !== "photos")),
+            photoUploads: uploadedPhotos
+          })
+          : new FormData(sellForm)
       });
       if (response.status === 401) {
+        if (uploadedPhotos?.length) {
+          try {
+            await window.deleteMarketplacePhotos(uploadedPhotos);
+          } catch (cleanupError) {
+            console.error("Could not clean up photos after the car upload session expired:", cleanupError);
+          }
+        }
         window.location.assign("login.html?returnTo=sell.html");
         return;
       }
       const { car } = await readApiResponse(response);
+      uploadedPhotos = null;
       sellForm.reset();
       clearPhotoPreviews();
       showMessage(sellMessage, "Your car has been added to the GariSafi marketplace.", true);
@@ -223,6 +241,17 @@ if (sellForm) {
       listingSuccessLink.textContent = "View your car listing →";
       listingSuccessLink.hidden = false;
     } catch (error) {
+      if (uploadedPhotos?.length) {
+        try {
+          await window.deleteMarketplacePhotos(uploadedPhotos);
+        } catch (cleanupError) {
+          console.error("Could not clean up photos for the failed car listing:", cleanupError);
+        }
+      }
+      if (error.status === 401) {
+        window.location.assign("login.html?returnTo=sell.html");
+        return;
+      }
       showMessage(sellMessage, error.message || "Could not save your car listing.");
     }
   });

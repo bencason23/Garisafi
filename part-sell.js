@@ -78,9 +78,29 @@ partForm.addEventListener("submit", async event => {
     return;
   }
 
+  let uploadedPhotos = null;
   try {
-    const response = await fetch("/api/parts", { method: "POST", body: new FormData(partForm) });
+    uploadedPhotos = window.uploadMarketplacePhotos
+      ? await window.uploadMarketplacePhotos(photos, "parts")
+      : null;
+    const response = await fetch("/api/parts", {
+      method: "POST",
+      headers: uploadedPhotos ? { "Content-Type": "application/json" } : {},
+      body: uploadedPhotos
+        ? JSON.stringify({
+          ...Object.fromEntries([...new FormData(partForm).entries()].filter(([name]) => name !== "photos")),
+          photoUploads: uploadedPhotos
+        })
+        : new FormData(partForm)
+    });
     if (response.status === 401) {
+      if (uploadedPhotos?.length) {
+        try {
+          await window.deleteMarketplacePhotos(uploadedPhotos);
+        } catch (cleanupError) {
+          console.error("Could not clean up photos after the spare-part upload session expired:", cleanupError);
+        }
+      }
       window.location.assign("login.html?returnTo=sell-part.html");
       return;
     }
@@ -88,11 +108,23 @@ partForm.addEventListener("submit", async event => {
       if (!response.ok) throw new Error(result.error || "The request could not be completed.");
       return result;
     });
+    uploadedPhotos = null;
     partForm.reset();
     clearPartPreviews();
     showMessage(partFormMessage, "Your spare part has been added to the GariSafi marketplace.", true);
     partSuccessLink.hidden = false;
   } catch (error) {
+    if (uploadedPhotos?.length) {
+      try {
+        await window.deleteMarketplacePhotos(uploadedPhotos);
+      } catch (cleanupError) {
+        console.error("Could not clean up photos for the failed spare-part listing:", cleanupError);
+      }
+    }
+    if (error.status === 401) {
+      window.location.assign("login.html?returnTo=sell-part.html");
+      return;
+    }
     showMessage(partFormMessage, error.message || "Could not save your spare part listing.");
   }
 });

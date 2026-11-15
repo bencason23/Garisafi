@@ -36,4 +36,14 @@ for (const file of publicFiles) {
   fs.copyFileSync(path.join(projectRoot, file), path.join(outputDirectory, file));
 }
 
-console.log(`Prepared ${publicFiles.length} public files in dist.`);
+require("esbuild").buildSync({
+  entryPoints: [path.join(__dirname, "blob-upload-client.js")],
+  bundle: true,
+  format: "iife",
+  platform: "browser",
+  target: ["es2022"],
+  outfile: path.join(projectRoot, "blob-upload.js")
+});
+fs.copyFileSync(path.join(projectRoot, "blob-upload.js"), path.join(outputDirectory, "blob-upload.js"));
+
+console.log(`Prepared ${publicFiles.length + 1} public files in dist.`);

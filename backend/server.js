@@ -9,13 +9,14 @@ const { rateLimit } = require("express-rate-limit");
 const helmet = require("helmet");
 const mongoose = require("mongoose");
 const multer = require("multer");
+const { del: deleteBlobs, head: getBlobMetadata } = require("@vercel/blob");
+const { handleUpload } = require("@vercel/blob/client");
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 const sessionSecret = process.env.SESSION_SECRET;
 const mongoUri = process.env.MONGODB_URI;
 const adminEmails = new Set((process.env.ADMIN_EMAIL || "").split(",").map(email => email.trim().toLowerCase()).filter(Boolean));
-const allowedOrigins = new Set((process.env.FRONTEND_ORIGINS || "").split(",").map(origin => origin.trim()).filter(Boolean));
 const isProduction = process.env.NODE_ENV === "production";
 const sessionCookieName = "garisafi.sid";
 const maximumImageSize = 5 * 1024 * 1024;
@@ -28,7 +29,7 @@ const adminPageSize = 25;
 const adminMessagePageSize = 50;
 const allowedCarPriceRanges = ["under-3000000", "3000000-7000000", "7000000-10000000", "over-10000000"];
 const allowedBodyStyles = ["SUV", "Sedan", "Hatchback", "Coupe", "Pickup", "Van", "Other"];
-const publicFiles = new Set(["/", "/index.html", "/sell.html", "/sell-part.html", "/car.html", "/parts.html", "/part.html", "/inbox.html", "/admin.html", "/login.html", "/register.html", "/styles.css", "/app.js", "/car.js", "/parts.js", "/part-detail.js", "/part-sell.js", "/inbox.js", "/admin.js", "/admin.css", "/auth.js", "/site-menu.js", "/toast.js", "/search-analytics.js"]);
+const publicFiles = new Set(["/", "/index.html", "/sell.html", "/sell-part.html", "/car.html", "/parts.html", "/part.html", "/inbox.html", "/admin.html", "/login.html", "/register.html", "/styles.css", "/app.js", "/car.js", "/parts.js", "/part-detail.js", "/part-sell.js", "/inbox.js", "/admin.js", "/admin.css", "/auth.js", "/site-menu.js", "/toast.js", "/search-analytics.js", "/blob-upload.js"]);
 const allowedPartCategories = ["Engine", "Brakes", "Electrical", "Body & Exterior", "Interior", "Wheels & Tyres", "Suspension", "Other"];
 const allowedPartConditions = ["New", "Used"];
 
@@ -50,8 +51,10 @@ const carSchema = new mongoose.Schema({
   description: { type: String, trim: true, maxlength: 1000 },
   sellerPhone: { type: String, trim: true, maxlength: 16 },
   photos: [{
-    data: { type: Buffer, required: true },
-    contentType: { type: String, required: true, enum: ["image/jpeg", "image/png", "image/webp"] }
+    data: { type: Buffer, select: false },
+    contentType: { type: String, required: true, enum: ["image/jpeg", "image/png", "image/webp"] },
+    url: { type: String },
+    pathname: { type: String }
   }],
   photo: { type: Buffer, select: false },
   photoContentType: { type: String, enum: ["image/jpeg", "image/png", "image/webp"] },
@@ -69,8 +72,10 @@ const sparePartSchema = new mongoose.Schema({
   price: { type: Number, required: true, min: 1 },
   sellerPhone: { type: String, trim: true, maxlength: 16 },
   photos: [{
-    data: { type: Buffer, required: true, select: false },
-    contentType: { type: String, required: true, enum: ["image/jpeg", "image/png", "image/webp"] }
+    data: { type: Buffer, select: false },
+    contentType: { type: String, required: true, enum: ["image/jpeg", "image/png", "image/webp"] },
+    url: { type: String },
+    pathname: { type: String }
   }],
   photo: { type: Buffer, select: false },
   photoContentType: { type: String, enum: ["image/jpeg", "image/png", "image/webp"] },
@@ -194,7 +199,7 @@ function asyncHandler(handler) {
 
 function checkSameOrigin(request, response, next) {
   const origin = request.get("origin");
-  if (origin && origin !== `${request.protocol}://${request.get("host")}` && !allowedOrigins.has(origin)) {
+  if (origin && origin !== `${request.protocol}://${request.get("host")}`) {
     response.status(403).json({ error: "Request origin is not allowed." });
     return;
   }
@@ -283,10 +288,106 @@ function detectImageType(buffer) {
   return null;
 }
 
+class InvalidUploadedPhotoError extends Error {}
+
+function isOwnedBlobPath(pathname, market, userId) {
+  return pathname.startsWith(`marketplace/${market}/${userId}/`)
+    && !pathname.includes("..")
+    && /^[A-Za-z0-9._/-]{1,240}$/.test(pathname);
+}
+
+async function validateBlobUploads(uploads, market, userId, maximumCount, maximumTotal) {
+  if (!Array.isArray(uploads) || uploads.length < 1 || uploads.length > maximumCount) {
+    throw new InvalidUploadedPhotoError(`Choose between 1 and ${maximumCount} photos.`);
+  }
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new Error("Vercel Blob is not configured. Add BLOB_READ_WRITE_TOKEN to the deployment environment.");
+  }
+
+  const photos = await Promise.all(uploads.map(async upload => {
+    if (!upload || typeof upload.url !== "string" || typeof upload.pathname !== "string"
+      || !isOwnedBlobPath(upload.pathname, market, userId)) {
+      throw new InvalidUploadedPhotoError("One of the uploaded photos is invalid.");
+    }
+
+    let url;
+    try {
+      url = new URL(upload.url);
+    } catch {
+      throw new InvalidUploadedPhotoError("One of the uploaded photo URLs is invalid.");
+    }
+    if (url.protocol !== "https:" || !(url.hostname === "public.blob.vercel-storage.com" || url.hostname.endsWith(".public.blob.vercel-storage.com"))) {
+      throw new InvalidUploadedPhotoError("Photos must be uploaded to the configured Vercel Blob store.");
+    }
+
+    const blob = await getBlobMetadata(upload.url);
+    if (blob.url !== upload.url || blob.pathname !== upload.pathname
+      || !["image/jpeg", "image/png", "image/webp"].includes(blob.contentType)
+      || blob.size < 1 || blob.size > maximumImageSize) {
+      throw new InvalidUploadedPhotoError("One of the uploaded photos is invalid or too large.");
+    }
+
+    const imageResponse = await fetch(blob.url, { headers: { Range: "bytes=0-11" } });
+    if (!imageResponse.ok || !imageResponse.body) {
+      throw new InvalidUploadedPhotoError("One of the uploaded photos could not be verified.");
+    }
+    const reader = imageResponse.body.getReader();
+    const chunks = [];
+    let byteCount = 0;
+    try {
+      while (byteCount < 12) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        byteCount += value.length;
+      }
+    } finally {
+      await reader.cancel().catch(() => {});
+    }
+    const bytes = Buffer.concat(chunks.map(chunk => Buffer.from(chunk)));
+    if (detectImageType(bytes) !== blob.contentType) {
+      throw new InvalidUploadedPhotoError("One of the uploaded files is not a valid JPG, PNG, or WebP image.");
+    }
+
+    return { url: blob.url, pathname: blob.pathname, contentType: blob.contentType, size: blob.size };
+  }));
+
+  if (photos.reduce((total, photo) => total + photo.size, 0) > maximumTotal) {
+    throw new InvalidUploadedPhotoError("All listing photos combined must be 12 MB or smaller.");
+  }
+  return photos;
+}
+
+async function resolveListingPhotos(request, market, maximumCount, minimumCount, maximumTotal) {
+  const files = Array.isArray(request.files) ? request.files : [];
+  if (files.length) {
+    if (files.length < minimumCount || files.length > maximumCount) {
+      throw new InvalidUploadedPhotoError(`Choose between ${minimumCount} and ${maximumCount} photos.`);
+    }
+    if (files.reduce((total, file) => total + file.size, 0) > maximumTotal) {
+      throw new InvalidUploadedPhotoError("All listing photos combined must be 12 MB or smaller.");
+    }
+    return files.map(file => {
+      const imageType = detectImageType(file.buffer);
+      if (!imageType || imageType !== file.mimetype) {
+        throw new InvalidUploadedPhotoError("One of the uploaded files is not a valid JPG, PNG, or WebP image.");
+      }
+      return { data: file.buffer, contentType: imageType };
+    });
+  }
+  return validateBlobUploads(request.body.photoUploads, market, request.session.userId, maximumCount, maximumTotal)
+    .then(photos => {
+      if (photos.length < minimumCount) {
+        throw new InvalidUploadedPhotoError(`Upload at least ${minimumCount} car photos.`);
+      }
+      return photos;
+    });
+}
+
 function serializeCar(car) {
   const id = String(car._id || car.id);
   const photoUrls = Array.isArray(car.photos) && car.photos.length
-    ? car.photos.map((_, index) => `/api/cars/${id}/photos/${index}`)
+    ? car.photos.map((photo, index) => photo.url || `/api/cars/${id}/photos/${index}`)
     : car.photoContentType ? [`/api/cars/${id}/photo`] : car.photoUrl ? [car.photoUrl] : [];
   return {
     id,
@@ -320,7 +421,7 @@ function serializeCarDetails(car) {
 function serializeSparePart(part) {
   const id = String(part._id || part.id);
   const photoUrls = Array.isArray(part.photos) && part.photos.length
-    ? part.photos.map((_, index) => `/api/parts/${id}/photos/${index}`)
+    ? part.photos.map((photo, index) => photo.url || `/api/parts/${id}/photos/${index}`)
     : part.photoContentType ? [`/api/parts/${id}/photo`] : [];
   return {
     id,
@@ -349,11 +450,11 @@ app.use(helmet({
       baseUri: ["'self'"],
       objectSrc: ["'none'"],
       frameAncestors: ["'none'"],
-      imgSrc: ["'self'", "data:", "blob:", "https://images.unsplash.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://images.unsplash.com", "https://*.blob.vercel-storage.com"],
       styleSrc: ["'self'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       scriptSrc: ["'self'"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", "https://*.blob.vercel-storage.com"],
       formAction: ["'self'"]
     }
   }
@@ -363,6 +464,10 @@ app.use(express.json({ limit: "16kb" }));
 app.use((request, response, next) => {
   if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) return checkSameOrigin(request, response, next);
   next();
+});
+
+app.use((request, response, next) => {
+  initialize().then(() => next(), next);
 });
 
 app.use((request, response, next) => {
@@ -393,7 +498,11 @@ app.use(asyncHandler(async (request, response, next) => {
 }));
 
 app.get("/api/health", (request, response) => {
-  response.json({ status: mongoose.connection.readyState === 1 ? "ok" : "unavailable" });
+  response.json({
+    status: mongoose.connection.readyState === 1 ? "ok" : "unavailable",
+    blobUploadsEnabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+    onVercel: Boolean(process.env.VERCEL)
+  });
 });
 
 app.post("/api/searches", searchRateLimit, asyncHandler(async (request, response) => {
@@ -518,6 +627,59 @@ app.post("/api/auth/logout", asyncHandler(async (request, response) => {
     secure: isProduction,
     path: "/"
   });
+  response.status(204).end();
+}));
+
+app.post("/api/uploads", requireAuth, asyncHandler(async (request, response) => {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    response.status(503).json({ error: "Photo storage is not configured. Add a Vercel Blob read-write token to the deployment." });
+    return;
+  }
+  const market = request.query.type;
+  if (!["cars", "parts"].includes(market)) {
+    response.status(400).json({ error: "Choose a valid listing type for the photo upload." });
+    return;
+  }
+  const result = await handleUpload({
+    body: request.body,
+    request,
+    onBeforeGenerateToken: async pathname => {
+      if (!isOwnedBlobPath(pathname, market, request.session.userId)) {
+        throw new InvalidUploadedPhotoError("This photo upload path is not allowed.");
+      }
+      return {
+        allowedContentTypes: ["image/jpeg", "image/png", "image/webp"],
+        maximumSizeInBytes: maximumImageSize,
+        addRandomSuffix: false
+      };
+    }
+  });
+  response.json(result);
+}));
+
+app.delete("/api/uploads", requireAuth, asyncHandler(async (request, response) => {
+  const uploads = request.body?.photoUploads;
+  if (!Array.isArray(uploads) || uploads.length > maximumCarPhotoCount) {
+    response.status(400).json({ error: "The photo cleanup request is invalid." });
+    return;
+  }
+  const urls = uploads.map(upload => {
+    if (!upload || typeof upload.url !== "string" || typeof upload.pathname !== "string"
+      || !["cars", "parts"].some(market => isOwnedBlobPath(upload.pathname, market, request.session.userId))) {
+      throw new InvalidUploadedPhotoError("The photo cleanup request contains an invalid path.");
+    }
+    let url;
+    try {
+      url = new URL(upload.url);
+    } catch {
+      throw new InvalidUploadedPhotoError("The photo cleanup request contains an invalid URL.");
+    }
+    if (url.protocol !== "https:" || !(url.hostname === "public.blob.vercel-storage.com" || url.hostname.endsWith(".public.blob.vercel-storage.com"))) {
+      throw new InvalidUploadedPhotoError("The photo cleanup request contains an invalid URL.");
+    }
+    return upload.url;
+  });
+  if (urls.length) await deleteBlobs(urls);
   response.status(204).end();
 }));
 
@@ -964,13 +1126,17 @@ app.get("/api/cars/:id/photo", asyncHandler(async (request, response) => {
     response.status(404).end();
     return;
   }
-  const car = await Car.findById(request.params.id).select("+photo");
+  const car = await Car.findById(request.params.id).select("+photo +photos.data");
   if (!car) {
     response.status(404).end();
     return;
   }
   const photo = car.photos?.[0];
   if (photo) {
+    if (photo.url) {
+      response.redirect(302, photo.url);
+      return;
+    }
     response.set("Cache-Control", "public, max-age=86400");
     response.type(photo.contentType).send(photo.data);
     return;
@@ -989,8 +1155,12 @@ app.get("/api/cars/:id/photos/:index", asyncHandler(async (request, response) =>
     response.status(404).end();
     return;
   }
-  const car = await Car.findById(request.params.id).select("photos");
+  const car = await Car.findById(request.params.id).select("+photos.data");
   const photo = car?.photos?.[index];
+  if (photo?.url) {
+    response.redirect(302, photo.url);
+    return;
+  }
   if (!photo) {
     response.status(404).end();
     return;
@@ -1000,24 +1170,7 @@ app.get("/api/cars/:id/photos/:index", asyncHandler(async (request, response) =>
 }));
 
 app.post("/api/cars", requireAuth, upload.array("photos", maximumCarPhotoCount), asyncHandler(async (request, response) => {
-  const files = request.files || [];
-  if (files.length < minimumCarPhotoCount) {
-    response.status(400).json({ error: `Upload at least ${minimumCarPhotoCount} car photos.` });
-    return;
-  }
-  if (files.reduce((total, file) => total + file.size, 0) > maximumCarPhotoTotal) {
-    response.status(400).json({ error: "All car photos combined must be 12 MB or smaller." });
-    return;
-  }
-  const photos = [];
-  for (const file of files) {
-    const imageType = detectImageType(file.buffer);
-    if (!imageType || imageType !== file.mimetype) {
-      response.status(400).json({ error: "One of the uploaded files is not a valid JPG, PNG, or WebP image." });
-      return;
-    }
-    photos.push({ data: file.buffer, contentType: imageType });
-  }
+  const photos = await resolveListingPhotos(request, "cars", maximumCarPhotoCount, minimumCarPhotoCount, maximumCarPhotoTotal);
 
   const make = normalizeText(request.body.make);
   const model = normalizeText(request.body.model);
@@ -1089,6 +1242,10 @@ app.get("/api/parts/:id/photos/:index", asyncHandler(async (request, response) =
   }
   const part = await SparePart.findById(request.params.id).select("+photos.data");
   const photo = part?.photos?.[index];
+  if (photo?.url) {
+    response.redirect(302, photo.url);
+    return;
+  }
   if (!photo?.data || !photo.contentType) {
     response.status(404).end();
     return;
@@ -1102,7 +1259,11 @@ app.get("/api/parts/:id/photo", asyncHandler(async (request, response) => {
     response.status(404).end();
     return;
   }
-  const part = await SparePart.findById(request.params.id).select("+photo");
+  const part = await SparePart.findById(request.params.id).select("+photo +photos.data");
+  if (part?.photos?.[0]?.url) {
+    response.redirect(302, part.photos[0].url);
+    return;
+  }
   if (!part || !part.photo || !part.photoContentType) {
     response.status(404).end();
     return;
@@ -1112,24 +1273,7 @@ app.get("/api/parts/:id/photo", asyncHandler(async (request, response) => {
 }));
 
 app.post("/api/parts", requireAuth, upload.array("photos", maximumPartPhotoCount), asyncHandler(async (request, response) => {
-  const files = request.files;
-  if (!Array.isArray(files) || !files.length) {
-    response.status(400).json({ error: "Choose at least one spare part photo to upload." });
-    return;
-  }
-  if (files.reduce((total, file) => total + file.size, 0) > maximumPartPhotoTotal) {
-    response.status(400).json({ error: "All spare part photos combined must be 12 MB or smaller." });
-    return;
-  }
-  const photos = [];
-  for (const file of files) {
-    const imageType = detectImageType(file.buffer);
-    if (!imageType || imageType !== file.mimetype) {
-      response.status(400).json({ error: "One of the uploaded files is not a valid JPG, PNG, or WebP image." });
-      return;
-    }
-    photos.push({ data: file.buffer, contentType: imageType });
-  }
+  const photos = await resolveListingPhotos(request, "parts", maximumPartPhotoCount, 1, maximumPartPhotoTotal);
 
   const title = normalizeText(request.body.title);
   const category = normalizeText(request.body.category);
@@ -1186,6 +1330,10 @@ app.use((error, request, response, next) => {
         ? `Upload no more than ${maximumCarPhotoCount} photos.`
         : "The uploaded photo could not be accepted.";
     response.status(400).json({ error: message });
+    return;
+  }
+  if (error instanceof InvalidUploadedPhotoError) {
+    response.status(400).json({ error: error.message });
     return;
   }
   if (error.message === "Upload a JPG, PNG, or WebP listing photo.") {
@@ -1251,12 +1399,23 @@ async function start() {
       maxAge: 7 * 24 * 60 * 60 * 1000
     }
   });
-  app.listen(port, () => {
-    console.log(`GariSafi.com is running at http://localhost:${port}`);
-  });
 }
 
-start().catch(error => {
-  console.error("GariSafi.com could not start:", error.message);
-  process.exitCode = 1;
-});
+let startupPromise;
+function initialize() {
+  if (!startupPromise) startupPromise = start();
+  return startupPromise;
+}
+
+module.exports = app;
+
+if (require.main === module) {
+  initialize().then(() => {
+    app.listen(port, () => {
+      console.log(`GariSafi.com is running at http://localhost:${port}`);
+    });
+  }).catch(error => {
+    console.error("GariSafi.com could not start:", error.message);
+    process.exitCode = 1;
+  });
+}
